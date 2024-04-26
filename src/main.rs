@@ -3,7 +3,7 @@ mod request;
 mod dispatcher;
 mod response;
 
-use std::{io::{Read, Write}, net::TcpListener};
+use std::{io::Read, net::TcpListener};
 
 use crate::{dispatcher::dispatch, parser::parse_html, response::Response};
 

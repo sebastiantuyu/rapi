@@ -1,4 +1,4 @@
-use std::{fmt::format, io::Write, net::TcpStream};
+use std::{io::Write, net::TcpStream};
 use anyhow::{Ok, Result};
 
 pub struct ResponseData {

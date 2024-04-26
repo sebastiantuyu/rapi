@@ -10,7 +10,6 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
   let mut sections_processed: Vec<Vec<String>> = Vec::new();
 
   let mut cursor: usize = 0;
-  let mut inner_cursor: usize = 0;
   while let Some(char) = char_request.next() {
     match char {
         '\r' => {
