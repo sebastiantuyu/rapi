@@ -14,10 +14,11 @@ impl RawRequest {
       if self.parsed.len() < 1 {
         return None;
       }
+      dbg!(&self.parsed);
       Some(Request {
         method: self.parsed[0][0].to_string(),
         path: self.parsed[0][1].to_string(),
-        host: self.parsed[1][1].to_string(),
+        // host: self.parsed[1][1].to_string(),
         params: Vec::new(),
         headers: self.headers.clone()
       })
@@ -28,7 +29,7 @@ impl RawRequest {
 pub struct  Request {
   pub method: String,
   pub path: String,
-  pub host: String,
+  // pub host: String,
   pub params: Vec<String>,
   pub headers: HashMap<String, String>
 }
