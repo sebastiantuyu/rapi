@@ -14,7 +14,8 @@ impl RawRequest {
       Some(Request {
         method: self.parsed[0][0].to_string(),
         path: self.parsed[0][1].to_string(),
-        host: self.parsed[1][1].to_string()
+        host: self.parsed[1][1].to_string(),
+        params: Vec::new()
       })
     }
 }
@@ -23,5 +24,13 @@ impl RawRequest {
 pub struct  Request {
   pub method: String,
   pub path: String,
-  pub host: String
+  pub host: String,
+  pub params: Vec<String>
+}
+
+
+impl Request {
+  pub fn add_param(&mut self, param: String) {
+    self.params.push(param);
+  }
 }
