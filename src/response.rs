@@ -61,10 +61,11 @@ impl Response {
     }
 
     if raw_response.len() == 1 {
-      response = raw_response[0].to_string() + "\r\n";
+      response = raw_response[0].to_string() + "\r\n\r\n";
     } else {
       response = raw_response.join("\r\n");
     }
+    dbg!(&response);
     response.as_bytes().to_vec()
   }
 }

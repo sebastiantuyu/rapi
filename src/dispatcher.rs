@@ -27,7 +27,7 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
       })
     ),
     CallbackItem::new(
-      "^/echo/(.+)/$".to_string(),
+      "^/echo/(.+)".to_string(),
       Box::new(|req, resp| {
         resp.status(200).send(Some(req.params[0].to_string()))?;
         Ok(())
@@ -46,10 +46,7 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
             _ => {}
         }
       }
-      match (callback.callback)(request, response) {
-        Ok(_) => { return Ok(()); }
-        Err(_) => { return Ok(()); }
-      }
+      return (callback.callback)(request, response);
     }
   }
 
