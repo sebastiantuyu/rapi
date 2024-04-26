@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::request::{RawRequest, Request};
 
 pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
@@ -8,6 +10,7 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
 
   let mut sections: Vec<String>= Vec::new();
   let mut sections_processed: Vec<Vec<String>> = Vec::new();
+  let mut headers: HashMap<String, String> = HashMap::new();
 
   let mut cursor: usize = 0;
   while let Some(char) = char_request.next() {
@@ -16,10 +19,19 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
           // consume '\n'
           char_request.next();
           sections_processed.push(Vec::new());
+
           sections_processed[cursor] = sections[cursor]
             .split(" ")
             .map(|x| x.to_string())
             .collect::<Vec<String>>();
+
+          if sections_processed[cursor][0].contains(&":".to_string()) {
+            // this is a header
+            headers.insert(
+              sections_processed[cursor][0].replace(":", ""),
+              sections_processed[cursor][1].clone()
+            );
+          }
 
           cursor += 1;
           sections.push("".to_string());
@@ -34,5 +46,5 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
     }
   }
 
-  RawRequest::new(sections_processed).to_request()
+  RawRequest::new(sections_processed, headers).to_request()
 }

@@ -65,7 +65,6 @@ impl Response {
     } else {
       response = raw_response.join("\r\n");
     }
-    dbg!(&response);
     response.as_bytes().to_vec()
   }
 }

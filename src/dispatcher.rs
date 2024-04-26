@@ -33,6 +33,22 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
         Ok(())
       })
     ),
+    CallbackItem::new(
+      "^/user-agent".to_string(),
+      Box::new(|req, resp| {
+        let header = req.headers.get("User-Agent");
+        match header {
+          Some(value) => {
+            resp.status(200).send(Some(value.to_string()))?;
+          }
+          _ => {
+            resp.status(400).send(Some(req.params[0].to_string()))?;
+          }
+        }
+
+        Ok(())
+      })
+    ),
   ];
 
   for callback in callbacks {
