@@ -37,7 +37,7 @@ fn main() {
     app.start(|mut stream| {
         let ctx = context.clone();
         thread::spawn(|| {
-            let mut buff = [0; 255];
+            let mut buff = [0; 512];
             let size_buff = stream.read(&mut buff).unwrap();
             match  parse_html(&buff[..size_buff].to_vec()) {
                 Some(mut request) => {

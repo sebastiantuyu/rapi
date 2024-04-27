@@ -5,6 +5,7 @@ use std::fs;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
+use std::io::prelude::*;
 
 fn file_exists(filename: &str) -> bool {
   if let Ok(metadata) = fs::metadata(filename) {
@@ -16,14 +17,16 @@ fn file_exists(filename: &str) -> bool {
 
 type CallbackFn =  Box<dyn Fn(Request, Response) -> Result<()>>;
 struct CallbackItem {
-  name: Regex,
+  method: String,
+  path: Regex,
   callback: CallbackFn,
 }
 
 impl CallbackItem {
-  pub fn new(name: String, callback: CallbackFn) -> Self {
+  pub fn new(path: String, method: &str, callback: CallbackFn) -> Self {
     Self {
-      name: Regex::new(&name).unwrap(),
+      method: method.to_string(),
+      path: Regex::new(&path).unwrap(),
       callback
     }
   }
@@ -33,6 +36,7 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
   let callbacks: Vec<CallbackItem> = vec![
     CallbackItem::new(
       "^/$".to_string(),
+      "GET",
       Box::new(|_, resp| {
         resp.status(200).send(None)?;
         Ok(())
@@ -40,6 +44,7 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
     ),
     CallbackItem::new(
       "^/echo/(.+)".to_string(),
+      "GET",
       Box::new(|req, resp| {
         resp.status(200).send(Some(req.params[0].to_string()))?;
         Ok(())
@@ -47,6 +52,7 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
     ),
     CallbackItem::new(
       "^/user-agent".to_string(),
+      "GET",
       Box::new(|req, resp| {
         let header = req.headers.get("User-Agent");
         match header {
@@ -63,6 +69,27 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
     ),
     CallbackItem::new(
       "^/files/(.+)".to_string(),
+      "POST",
+      Box::new(|mut req, res| {
+        match req.get_context() {
+          Some(addr) => {
+            let target_addr = format!("{addr}/{}", req.params[0].to_string());
+            println!("Creating a file in:: {target_addr}");
+            let mut file = File::create(target_addr).unwrap();
+            file.write_all(req.body.as_bytes())?;
+            res.status(201).send(None)?;
+            Ok(())
+          }
+          _ => {
+            res.status(500).send(None)?;
+            Ok(())
+          }
+        }
+      })
+    ),
+    CallbackItem::new(
+      "^/files/(.+)".to_string(),
+      "GET",
       Box::new(|mut req, mut res| {
         let mut base_url = "./static".to_string();
         match req.get_context() {
@@ -86,7 +113,11 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
   ];
 
   for callback in callbacks {
-    if let Some(captures ) = callback.name.captures(&request.path.clone()) {
+    if let Some(captures ) = callback.path.captures(&request.path.clone()) {
+      if callback.method != request.method.to_uppercase() {
+        continue;
+      }
+
       for (i, cap) in captures.iter().enumerate() {
         if i == 0 { continue; }
         match cap {

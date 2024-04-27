@@ -4,12 +4,13 @@ use crate::Context;
 
 pub struct RawRequest {
   pub parsed: Vec<Vec<String>>,
-  pub headers: HashMap<String, String>
+  pub headers: HashMap<String, String>,
+  pub body: String
 }
 
 impl RawRequest {
-    pub fn new(parsed: Vec<Vec<String>>, headers: HashMap<String, String>) -> Self {
-      Self { parsed, headers }
+    pub fn new(parsed: Vec<Vec<String>>, headers: HashMap<String, String>, body: String) -> Self {
+      Self { parsed, headers, body }
     }
 
     pub fn to_request(&mut self) -> Option<Request> {
@@ -17,6 +18,7 @@ impl RawRequest {
         return None;
       }
       Some(Request {
+        body: self.body.clone(),
         method: self.parsed[0][0].to_string(),
         path: self.parsed[0][1].to_string(),
         params: Vec::new(),
@@ -28,6 +30,7 @@ impl RawRequest {
 
 #[derive(Debug)]
 pub struct  Request {
+  pub body: String,
   pub method: String,
   pub path: String,
   pub params: Vec<String>,
@@ -41,7 +44,6 @@ impl Request {
     self.params.push(param);
   }
   pub fn set_context(&mut self, ctx: Arc<Mutex<Context>>) {
-    // self.base_url = base_url;
     self.context = Some(ctx);
   }
 

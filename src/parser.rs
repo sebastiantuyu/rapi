@@ -8,6 +8,7 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
     .chars()
     .peekable();
 
+  let mut body: String = "".to_string();
   let mut sections: Vec<String>= Vec::new();
   let mut sections_processed: Vec<Vec<String>> = Vec::new();
   let mut headers: HashMap<String, String> = HashMap::new();
@@ -33,6 +34,24 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
             );
           }
 
+          match char_request.peek() {
+            // actual consume of the body
+            Some(body_char) => {
+              if body_char == &'\r' {
+                // consume '\r'
+                char_request.next();
+                // consume '\n'
+                char_request.next();
+                while let Some(bc) = char_request.peek() {
+                  if bc == &'\r' {
+                    break;
+                  }
+                  body += &char_request.next().unwrap().to_string();
+                }
+              }
+            }
+            _ => {}
+          }
           cursor += 1;
           sections.push("".to_string());
         }
@@ -45,5 +64,5 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
         }
     }
   }
-  RawRequest::new(sections_processed, headers).to_request()
+  RawRequest::new(sections_processed, headers, body).to_request()
 }
