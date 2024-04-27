@@ -40,9 +40,9 @@ impl Response {
       format!("HTTP/1.1 {} {}", self.data.status, header_response),
       format!("Content-Type: application/octet-stream"),
       format!("Content-Length: {}", data.len()),
-      format!(""),
+      "\r\n".to_string(),
     ];
-    let joined_response = raw_response[0].to_string() + "\r\n\r\n";
+    let joined_response = raw_response.join("\r\n");
     let mut response = joined_response.as_bytes().to_vec();
     response.extend_from_slice(&data);
 
