@@ -64,12 +64,12 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
     CallbackItem::new(
       "^/files/(.+)".to_string(),
       Box::new(|mut req, mut res| {
-        let mut base_url = "dummy".to_string();
+        let mut base_url = "./static".to_string();
         match req.get_context() {
           Some(v) => { base_url = v.to_string(); }
           _ => {}
         }
-        let file_addr = format!("./{base_url}/{}", req.params[0].to_string());
+        let file_addr = format!("{base_url}/{}", req.params[0].to_string());
         if !file_exists(&file_addr) {
           _ = res.status(404).send(None);
           return Ok(())
