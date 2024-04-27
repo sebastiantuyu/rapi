@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
+
+use crate::Context;
 
 pub struct RawRequest {
   pub parsed: Vec<Vec<String>>,
@@ -14,13 +16,12 @@ impl RawRequest {
       if self.parsed.len() < 1 {
         return None;
       }
-      dbg!(&self.parsed);
       Some(Request {
         method: self.parsed[0][0].to_string(),
         path: self.parsed[0][1].to_string(),
-        // host: self.parsed[1][1].to_string(),
         params: Vec::new(),
-        headers: self.headers.clone()
+        headers: self.headers.clone(),
+        context: None
       })
     }
 }
@@ -29,14 +30,25 @@ impl RawRequest {
 pub struct  Request {
   pub method: String,
   pub path: String,
-  // pub host: String,
   pub params: Vec<String>,
-  pub headers: HashMap<String, String>
+  pub headers: HashMap<String, String>,
+  pub context: Option<Arc<Mutex<Context>>>
 }
 
 
 impl Request {
   pub fn add_param(&mut self, param: String) {
     self.params.push(param);
+  }
+  pub fn set_context(&mut self, ctx: Arc<Mutex<Context>>) {
+    // self.base_url = base_url;
+    self.context = Some(ctx);
+  }
+
+  pub fn get_context(&mut self) -> Option<String> {
+    match &self.context {
+      Some(ctx) => { return ctx.lock().unwrap().base_url.clone() },
+      _ => { None }
+    }
   }
 }

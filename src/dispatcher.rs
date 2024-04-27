@@ -1,6 +1,18 @@
 use crate::{request::Request, response::Response};
 use anyhow::Result;
 use regex::Regex;
+use std::fs;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::Read;
+
+fn file_exists(filename: &str) -> bool {
+  if let Ok(metadata) = fs::metadata(filename) {
+      metadata.is_file()
+  } else {
+      false
+  }
+}
 
 type CallbackFn =  Box<dyn Fn(Request, Response) -> Result<()>>;
 struct CallbackItem {
@@ -49,6 +61,28 @@ pub fn dispatch(mut request: Request, response: Response) -> Result<()> {
         Ok(())
       })
     ),
+    CallbackItem::new(
+      "^/files/(.+)".to_string(),
+      Box::new(|mut req, mut res| {
+        let mut base_url = "dummy".to_string();
+        match req.get_context() {
+          Some(v) => { base_url = v.to_string(); }
+          _ => {}
+        }
+        let file_addr = format!("./{base_url}/{}", req.params[0].to_string());
+        if !file_exists(&file_addr) {
+          _ = res.status(404).send(None);
+          return Ok(())
+        }
+        let file = File::open(file_addr).unwrap();
+        let mut reader = BufReader::new(file);
+        let mut buffer = Vec::new();
+        reader.read_to_end(&mut buffer)?;
+
+        _ = res.send_file(buffer);
+        Ok(())
+      })
+    )
   ];
 
   for callback in callbacks {

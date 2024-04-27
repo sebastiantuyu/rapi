@@ -28,6 +28,27 @@ impl Response {
     self
   }
 
+  pub fn send_file(&mut self, data: Vec<u8>) -> Result<()> {
+    let header_response = {
+      match self.data.status {
+        200 => { "OK" }
+        _ => { "Not Found" }
+      }
+    };
+
+    let raw_response = vec![
+      format!("HTTP/1.1 {} {}", self.data.status, header_response),
+      format!("Content-Type: application/octet-stream"),
+      format!("Content-Length: {}", data.len()),
+      format!(""),
+    ];
+    let joined_response = raw_response[0].to_string() + "\r\n\r\n";
+    let mut response = joined_response.as_bytes().to_vec();
+    response.extend_from_slice(&data);
+
+    self._send_(response)
+  }
+
   pub fn send(&mut self, body: Option<String>) -> Result<()> {
     self.data.body = body;
     let encoded_body = self._encode_();
@@ -49,7 +70,9 @@ impl Response {
         _ => { "Not Found" }
       }
     };
-    let mut raw_response = [format!("HTTP/1.1 {} {}", self.data.status, header_response)].to_vec();
+    let mut raw_response = vec![
+      format!("HTTP/1.1 {} {}", self.data.status, header_response)
+    ];
 
     if let Some(body) = &self.data.body {
       raw_response.extend_from_slice(&[

@@ -45,6 +45,5 @@ pub fn parse_html(request: &Vec<u8>) -> Option<Request> {
         }
     }
   }
-
   RawRequest::new(sections_processed, headers).to_request()
 }
